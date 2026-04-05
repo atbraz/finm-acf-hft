@@ -1,9 +1,9 @@
 CXX := /opt/homebrew/opt/llvm/bin/clang++
 
 .DEFAULT_GOAL := build
-.PHONY: build build-O1 build-O2 build-O3 \
+.PHONY: build build-O1 build-O2 build-O3 build-all \
         run run-O1 run-O2 run-O3 \
-        test bench bench-O1 bench-O2 bench-O3 \
+        test bench bench-O1 bench-O2 bench-O3 bench-all \
         report clean
 
 define cmake_build
@@ -52,6 +52,11 @@ bench-O2: build-O2
 
 bench-O3: build-O3
 	./build-O3/bench
+
+build-all: build build-O1 build-O2 build-O3
+
+bench-all: build-all
+	python3 scripts/bench_all.py
 
 report:
 	typst compile discussions/report.typ discussions/report.pdf
