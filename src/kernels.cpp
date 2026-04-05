@@ -2,8 +2,8 @@
 
 #include "kernels.hpp"
 
-void multiply_mv_row_major(const double* matrix, int rows, int cols,
-                           const double* vector, double* result) {
+void multiply_mv_row_major(const double* __restrict__ matrix, int rows, int cols,
+                           const double* __restrict__ vector, double* __restrict__ result) {
     for (int i = 0; i < rows; ++i) {
         double sum = 0.0;
         for (int j = 0; j < cols; ++j)
@@ -12,8 +12,8 @@ void multiply_mv_row_major(const double* matrix, int rows, int cols,
     }
 }
 
-void multiply_mv_col_major(const double* matrix, int rows, int cols,
-                           const double* vector, double* result) {
+void multiply_mv_col_major(const double* __restrict__ matrix, int rows, int cols,
+                           const double* __restrict__ vector, double* __restrict__ result) {
     for (int i = 0; i < rows; ++i)
         result[i] = 0.0;
     for (int j = 0; j < cols; ++j) {
@@ -22,9 +22,9 @@ void multiply_mv_col_major(const double* matrix, int rows, int cols,
     }
 }
 
-void multiply_mm_naive(const double* matrixA, int rowsA, int colsA,
-                       const double* matrixB, int rowsB, int colsB,
-                       double* result) {
+void multiply_mm_naive(const double* __restrict__ matrixA, int rowsA, int colsA,
+                       const double* __restrict__ matrixB, int rowsB, int colsB,
+                       double* __restrict__ result) {
     (void)rowsB;
     for (int i = 0; i < rowsA; ++i) {
         for (int j = 0; j < colsB; ++j) {
@@ -36,9 +36,9 @@ void multiply_mm_naive(const double* matrixA, int rowsA, int colsA,
     }
 }
 
-void multiply_mm_transposed_b(const double* matrixA, int rowsA, int colsA,
-                               const double* matrixB_transposed, int rowsB, int colsB,
-                               double* result) {
+void multiply_mm_transposed_b(const double* __restrict__ matrixA, int rowsA, int colsA,
+                               const double* __restrict__ matrixB_transposed, int rowsB,
+                               int colsB, double* __restrict__ result) {
     (void)colsB;
     for (int i = 0; i < rowsA; ++i) {
         for (int j = 0; j < rowsB; ++j) {
@@ -50,9 +50,9 @@ void multiply_mm_transposed_b(const double* matrixA, int rowsA, int colsA,
     }
 }
 
-void multiply_mm_tiled(const double* matrixA, int rowsA, int colsA,
-                       const double* matrixB, int rowsB, int colsB,
-                       double* result, int tile) {
+void multiply_mm_tiled(const double* __restrict__ matrixA, int rowsA, int colsA,
+                       const double* __restrict__ matrixB, int rowsB, int colsB,
+                       double* __restrict__ result, int tile) {
     (void)rowsB;
     std::memset(result, 0, rowsA * colsB * sizeof(double));
     for (int i0 = 0; i0 < rowsA; i0 += tile) {
