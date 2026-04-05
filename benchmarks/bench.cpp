@@ -76,33 +76,53 @@ static void bench_mv(int n) {
 }
 
 static void bench_mm(int n) {
-    auto* A = alloc_aligned<double>(n * n);
-    auto* B = alloc_aligned<double>(n * n);
-    auto* C = alloc_aligned<double>(n * n);
-    std::memset(A, 0, n * n * sizeof(double));
-    std::memset(B, 0, n * n * sizeof(double));
-    std::memset(C, 0, n * n * sizeof(double));
+    // aligned
+    auto* A_a = alloc_aligned<double>(n * n);
+    auto* B_a = alloc_aligned<double>(n * n);
+    auto* C_a = alloc_aligned<double>(n * n);
+    std::memset(A_a, 0, n * n * sizeof(double));
+    std::memset(B_a, 0, n * n * sizeof(double));
+    std::memset(C_a, 0, n * n * sizeof(double));
 
-    // skip naive and tiled for large n to avoid very long runtimes
+    // unaligned
+    auto* A_u = new double[n * n]();
+    auto* B_u = new double[n * n]();
+    auto* C_u = new double[n * n]();
+
     int runs = (n >= 512) ? 10 : 100;
 
-    auto [mean_naive, sd_naive] = time_stats([&] {
-        multiply_mm_naive(A, n, n, B, n, n, C);
+    auto [mean_naive_a, sd_naive_a] = time_stats([&] {
+        multiply_mm_naive(A_a, n, n, B_a, n, n, C_a);
     }, runs);
-    auto [mean_tb, sd_tb] = time_stats([&] {
-        multiply_mm_transposed_b(A, n, n, B, n, n, C);
+    auto [mean_naive_u, sd_naive_u] = time_stats([&] {
+        multiply_mm_naive(A_u, n, n, B_u, n, n, C_u);
     }, runs);
-    auto [mean_tiled, sd_tiled] = time_stats([&] {
-        multiply_mm_tiled(A, n, n, B, n, n, C);
+    auto [mean_tb_a, sd_tb_a] = time_stats([&] {
+        multiply_mm_transposed_b(A_a, n, n, B_a, n, n, C_a);
+    }, runs);
+    auto [mean_tb_u, sd_tb_u] = time_stats([&] {
+        multiply_mm_transposed_b(A_u, n, n, B_u, n, n, C_u);
+    }, runs);
+    auto [mean_tiled_a, sd_tiled_a] = time_stats([&] {
+        multiply_mm_tiled(A_a, n, n, B_a, n, n, C_a);
+    }, runs);
+    auto [mean_tiled_u, sd_tiled_u] = time_stats([&] {
+        multiply_mm_tiled(A_u, n, n, B_u, n, n, C_u);
     }, runs);
 
-    print_row("mm_naive", n, mean_naive, sd_naive);
-    print_row("mm_transposed_b", n, mean_tb, sd_tb);
-    print_row("mm_tiled", n, mean_tiled, sd_tiled);
+    print_row("mm_naive (aligned)", n, mean_naive_a, sd_naive_a);
+    print_row("mm_naive (unaligned)", n, mean_naive_u, sd_naive_u);
+    print_row("mm_transposed_b (aligned)", n, mean_tb_a, sd_tb_a);
+    print_row("mm_transposed_b (unaligned)", n, mean_tb_u, sd_tb_u);
+    print_row("mm_tiled (aligned)", n, mean_tiled_a, sd_tiled_a);
+    print_row("mm_tiled (unaligned)", n, mean_tiled_u, sd_tiled_u);
 
-    free_aligned(A);
-    free_aligned(B);
-    free_aligned(C);
+    free_aligned(A_a);
+    free_aligned(B_a);
+    free_aligned(C_a);
+    delete[] A_u;
+    delete[] B_u;
+    delete[] C_u;
 }
 
 int main() {
