@@ -1,5 +1,4 @@
 #include <iostream>
-#include "kernels.hpp"
 
 int main() {
     std::cout << "HFT Kernels — Team 11\n";
