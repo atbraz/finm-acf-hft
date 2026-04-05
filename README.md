@@ -1,8 +1,10 @@
-# High-Performance Linear Algebra Kernels
+# HFT Project
+---
+UChicago FinMath Spring 26 Advanced Computing for Finance HFT Project
 
-**Course:** ACF
+**Course:** FINM 32700 - Advanced Computing for Finance
 **Team:** 11
-**Members:** [Your Name]
+**Members:** Antonio Magalhaes Torreao e Braz
 
 ## Build
 
@@ -10,7 +12,7 @@
 
 - CMake >= 3.20
 - [Ninja](https://ninja-build.org)
-- LLVM clang++ via Homebrew: `/opt/homebrew/opt/llvm/bin/clang++`
+- LLVM clang++
 - [just](https://just.systems)
 - [Typst](https://typst.app) (for report compilation)
 
@@ -28,32 +30,3 @@
 | `just report`  | Compile `discussions/report.typ` → PDF          |
 | `just clean`   | Remove all build directories                    |
 
-## Discussion Questions
-
-1. **Pointers vs References in C++**
-
-   _To be completed after Part 2 analysis._
-
-2. **Row-major vs Column-major and Cache Locality**
-
-   _To be completed after Part 2 analysis._
-
-3. **CPU Caches and Locality (L1/L2/L3, temporal and spatial locality)**
-
-   _To be completed after Part 2 analysis._
-
-4. **Memory Alignment**
-
-   _To be completed after Part 2 analysis._
-
-5. **Compiler Optimisations and Inlining**
-
-   _To be completed after Part 2 analysis._
-
-6. **Profiling Bottlenecks**
-
-   _To be completed after Part 2 analysis._
-
-7. **Teamwork Reflection**
-
-   _To be completed after Part 2 analysis._
