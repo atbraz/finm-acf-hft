@@ -40,6 +40,11 @@ bench-O2: build-O2
 bench-O3: build-O3
     ./build-O3/bench
 
+build-all: build build-O1 build-O2 build-O3
+
+bench-all: build-all
+    python3 scripts/bench_all.py
+
 report:
     typst compile discussions/report.typ discussions/report.pdf
 

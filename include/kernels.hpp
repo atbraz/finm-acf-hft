@@ -20,6 +20,11 @@ void multiply_mm_transposed_b(const double* matrixA, int rowsA, int colsA,
                                const double* matrixB_transposed, int rowsB, int colsB,
                                double* result);
 
+// Part 2 — optimized kernel variants
+void multiply_mm_tiled(const double* matrixA, int rowsA, int colsA,
+                       const double* matrixB, int rowsB, int colsB,
+                       double* result, int tile = 32);
+
 // Part 2 — aligned memory helpers
 // alignment must be a power of 2 and count*sizeof(T) must be a multiple of alignment.
 // Caller is responsible for calling free_aligned() on the returned pointer.
