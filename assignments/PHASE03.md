@@ -1,4 +1,4 @@
-# Phase 3: Local Order Book and Core Trading Infrastructure
+# HFT Project Phase 3 - Local Order Book and Core Trading Infrastructure
 
 ## Purpose
 

@@ -1,4 +1,4 @@
-# Phase 4: Build & Benchmark a High-Frequency Trading System in C++
+# HFT Project Phase 4 - Build & Benchmark a High-Frequency Trading System in C++
 
 ## Objective
 
