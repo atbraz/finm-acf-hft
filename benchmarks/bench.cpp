@@ -36,9 +36,9 @@ static void print_row(const char* name, int n, double mean, double stddev) {
 }
 
 static void bench_mv(int n) {
-    double* mat = alloc_aligned<double>(n * n);
-    double* vec = alloc_aligned<double>(n);
-    double* result = alloc_aligned<double>(n);
+    auto* mat = alloc_aligned<double>(n * n);
+    auto* vec = alloc_aligned<double>(n);
+    auto* result = alloc_aligned<double>(n);
 
     std::memset(mat, 0, n * n * sizeof(double));
     std::memset(vec, 0, n * sizeof(double));
@@ -60,9 +60,9 @@ static void bench_mv(int n) {
 }
 
 static void bench_mm(int n) {
-    double* A = alloc_aligned<double>(n * n);
-    double* B = alloc_aligned<double>(n * n);
-    double* C = alloc_aligned<double>(n * n);
+    auto* A = alloc_aligned<double>(n * n);
+    auto* B = alloc_aligned<double>(n * n);
+    auto* C = alloc_aligned<double>(n * n);
 
     std::memset(A, 0, n * n * sizeof(double));
     std::memset(B, 0, n * n * sizeof(double));
