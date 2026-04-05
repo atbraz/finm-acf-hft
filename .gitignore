@@ -2,7 +2,11 @@ build/
 build-O1/
 build-O2/
 build-O3/
+build-pgo/
 compile_commands.json
+
+# Profile output (traces are large binary bundles, text files are regenerable)
+profile/
 
 # Prerequisites
 *.d
