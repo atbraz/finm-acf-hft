@@ -1,4 +1,4 @@
-# HFT Project – Momentum-Based Smart Order Client
+# HFT Project Phase 2 – Momentum-Based Smart Order Client
 
 ## Overview
 
