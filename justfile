@@ -44,11 +44,19 @@ llvm := "/opt/homebrew/opt/llvm/bin"
 
 # --- profiling ---
 
+# ensure profile output directory exists
+_profile-dir:
+    @mkdir -p profile
+
+# sysinfo: capture system details for reproducibility
+profile-sysinfo: _profile-dir
+    bash scripts/sysinfo.sh
+
 # sample: wall-clock call-tree (no sudo needed)
-profile-sample: build-O2
+profile-sample: build-O2 _profile-dir
     ./build-O2/profile &
-    sleep 1 && sample profile 6 1 -file discussions/profile_sample.txt
-    @echo "saved → discussions/profile_sample.txt"
+    sleep 1 && sample profile 6 1 -file profile/sample.txt
+    @echo "saved → profile/sample.txt"
 
 # pgo: LLVM instrumented profiling — per-function call counts and block frequencies
 _build-pgo:
@@ -58,16 +66,16 @@ _build-pgo:
         -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF
     cmake --build build-pgo
 
-profile-pgo: _build-pgo
+profile-pgo: _build-pgo _profile-dir
     LLVM_PROFILE_FILE="build-pgo/kernels.profraw" ./build-pgo/profile
     {{llvm}}/llvm-profdata merge -o build-pgo/kernels.profdata build-pgo/kernels.profraw
     {{llvm}}/llvm-profdata show --function="multiply_m" --all-functions build-pgo/kernels.profdata \
-        | grep -A6 "multiply_mm\|multiply_mv\|Counters\|Entries\|Function" > discussions/profile_pgo.txt
-    @echo "saved → discussions/profile_pgo.txt"
-    @cat discussions/profile_pgo.txt
+        | grep -A6 "multiply_mm\|multiply_mv\|Counters\|Entries\|Function" > profile/pgo.txt
+    @echo "saved → profile/pgo.txt"
+    @cat profile/pgo.txt
 
 # remarks: compiler vectorization and optimization diagnostics
-profile-remarks:
+profile-remarks: _profile-dir
     {{cxx}} -O3 -march=native -c src/kernels.cpp -I include \
         -Rpass=loop-vectorize \
         -Rpass-missed=loop-vectorize \
@@ -75,12 +83,12 @@ profile-remarks:
         -Rpass=loop-unroll \
         -Rpass=slp-vectorizer \
         -Rpass-missed=slp-vectorizer \
-        -o /dev/null 2> discussions/profile_remarks.txt
-    @echo "saved → discussions/profile_remarks.txt"
-    @cat discussions/profile_remarks.txt
+        -o /dev/null 2> profile/remarks.txt
+    @echo "saved → profile/remarks.txt"
+    @cat profile/remarks.txt
 
 # time: BSD time -l across all opt levels — max RSS, page faults, wall time
-profile-time: build-all
+profile-time: build-all _profile-dir
     @for dir in build build-O1 build-O2 build-O3; do \
         printf "\n=== %s ===\n" "$dir"; \
         /usr/bin/time -l "./$dir/bench" 2>&1 \
@@ -88,14 +96,39 @@ profile-time: build-all
     done
 
 # dtrace: hardware event sampling — requires sudo
-profile-dtrace: build-O2
+profile-dtrace: build-O2 _profile-dir
     @echo "running with sudo (hardware counters require root on macOS)..."
-    sudo dtrace -n 'profile-997 /execname=="profile"/ { @fn[ustack(4)] = count(); } tick-8s { exit(0); }' -c './build-O2/profile' -o discussions/profile_dtrace.txt 2>/dev/null || true
-    @echo "saved → discussions/profile_dtrace.txt"
+    sudo dtrace -n 'profile-997 /execname=="profile"/ { @fn[ustack(4)] = count(); } tick-8s { exit(0); }' -c './build-O2/profile' -o profile/dtrace.txt 2>/dev/null || true
+    @echo "saved → profile/dtrace.txt"
 
-# profile-all: run all non-sudo profilers
-profile-all: profile-sample profile-pgo profile-remarks profile-time
-    @echo "\nall profiles saved to discussions/profile_*.txt"
+# xctrace: Instruments CPU Counters — L1/L2 cache misses, branch mispredictions
+profile-xctrace-counters: build-O2 _profile-dir
+    rm -rf profile/xctrace_counters.trace
+    xcrun xctrace record \
+        --template 'CPU Counters' \
+        --output profile/xctrace_counters.trace \
+        --launch -- ./build-O2/profile
+    @echo "saved → profile/xctrace_counters.trace"
+    @echo "open with: open profile/xctrace_counters.trace"
+
+# xctrace: Time Profiler — detailed call tree with timestamps
+profile-xctrace-time: build-O2 _profile-dir
+    rm -rf profile/xctrace_time.trace
+    xcrun xctrace record \
+        --template 'Time Profiler' \
+        --output profile/xctrace_time.trace \
+        --launch -- ./build-O2/profile
+    @echo "saved → profile/xctrace_time.trace"
+    @echo "open with: open profile/xctrace_time.trace"
+
+# xctrace: run both Instruments profiles
+profile-xctrace: profile-xctrace-counters profile-xctrace-time
+    @echo "traces saved to profile/xctrace_*.trace"
+    @echo "open in Instruments: open profile/xctrace_counters.trace"
+
+# profile-all: run all CLI profilers (text output) + sysinfo
+profile-all: profile-sysinfo profile-sample profile-pgo profile-remarks profile-time
+    @echo "\nall profiles saved to profile/"
 
 build-all: build build-O1 build-O2 build-O3
 
