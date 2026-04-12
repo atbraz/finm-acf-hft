@@ -1,20 +1,15 @@
 cmake_minimum_required(VERSION 3.20)
-project(hft_kernels CXX)
+project(hft_phase2 CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Shared object library — compiled once, linked into all three executables
-add_library(kernels OBJECT src/kernels.cpp)
-target_include_directories(kernels PUBLIC include)
-target_compile_options(kernels PRIVATE -Wall -Wextra)
+find_package(Threads REQUIRED)
 
-add_executable(main src/main.cpp)
-add_executable(tests tests/correctness.cpp)
-add_executable(bench benchmarks/bench.cpp)
-add_executable(profile src/profile_driver.cpp)
+add_executable(hft_server src/hft_server.cpp src/StochasticProcesses.cpp)
+add_executable(hft_client src/hft_client.cpp)
 
-foreach(target main tests bench profile)
-    target_link_libraries(${target} PRIVATE kernels)
+foreach(target hft_server hft_client)
+    target_link_libraries(${target} PRIVATE Threads::Threads)
     target_compile_options(${target} PRIVATE -Wall -Wextra)
 endforeach()
