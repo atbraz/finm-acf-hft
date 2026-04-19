@@ -4,23 +4,46 @@ ASK 100.20 250
 
 BID 100.15 200
 ASK 100.18 100
+
+EXECUTION 1 5
+
 ASK 100.18 60
+
+EXECUTION 1 5
+
 BID 100.10 0
+
+EXECUTION 2 10
+
 ASK 100.18 30
+
+EXECUTION 3 10
+
 ASK 100.18 0
+
+EXECUTION 4 3
+
 ASK 100.25 200
 
-EXECUTION 1 10
-EXECUTION 1 20
+# -------------------------------------------------------
+# Extended market activity (beyond original assignment spec)
+# -------------------------------------------------------
+
+EXECUTION 5 10
+EXECUTION 4 7
 
 BID 100.17 100
 
-EXECUTION 2 50
+EXECUTION 6 10
+EXECUTION 7 5
 
 BID 100.15 100
 ASK 100.22 150
 
-EXECUTION 2 50
+EXECUTION 8 10
+EXECUTION 7 5
+EXECUTION 9 10
+EXECUTION 10 10
 
 BID 100.20 300
 ASK 100.23 100
