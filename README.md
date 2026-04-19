@@ -1,6 +1,5 @@
 # HFT Phase 3: Local Order Book
 
-Phase 3 implements a local order book and core trading infrastructure. The program reads a text-based market feed, maintains a synchronized view of best bid and ask prices, and places orders when the spread narrows below a configurable threshold. Net position is tracked across fills to alternate between buy and sell orders, keeping exposure balanced.
 
 ## Architecture
 
@@ -39,7 +38,7 @@ make asan
 make clean
 ```
 
-Requires LLVM clang++ (`/opt/homebrew/opt/llvm/bin/clang++`), CMake, and Ninja.
+Requires LLVM clang++, CMake, and Ninja.
 
 ## Sample Output
 

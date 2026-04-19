@@ -1,4 +1,3 @@
-# Initial market setup
 BID 100.10 300
 ASK 100.20 250
 
@@ -26,7 +25,7 @@ EXECUTION 4 3
 ASK 100.25 200
 
 # -------------------------------------------------------
-# Extended market activity (beyond original assignment spec)
+# Extended market activity 
 # -------------------------------------------------------
 
 EXECUTION 5 10
