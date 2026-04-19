@@ -23,6 +23,8 @@ All heap allocation uses RAII via `std::unique_ptr`. There are no raw `new` or `
 
 ## Build and Run
 
+With `just` (recommended) or `make`:
+
 ```bash
 just build      # configure + build
 just run        # build + run hft_phase3
@@ -30,19 +32,27 @@ just asan       # build with AddressSanitizer
 just clean      # remove build/
 ```
 
-Requires LLVM clang++ (`/opt/homebrew/opt/llvm/bin/clang++`) and CMake.
+```bash
+make build      # same recipes available via make
+make run
+make asan
+make clean
+```
+
+Requires LLVM clang++ (`/opt/homebrew/opt/llvm/bin/clang++`), CMake, and Ninja.
 
 ## Sample Output
 
 ```
-[FEED] BID 100.50 x 200
-[FEED] ASK 100.52 x 150
-[BOOK] spread=0.02, threshold=0.05 -> spread within threshold
-[ORDER] placing BUY at 100.50, qty=100
-[FEED] EXECUTION 100.50 x 100
-[ORDER] fill: BUY 100 @ 100.50, net_position=+100
-[FEED] BID 100.53 x 300
-[FEED] ASK 100.54 x 200
-[BOOK] spread=0.01, threshold=0.05 -> spread within threshold
-[ORDER] placing SELL at 100.54, qty=100
+[BID] 100.1 x 300
+[Market] Best Bid: 100.10 x 300
+[ASK] 100.20 x 250
+[Market] Best Ask: 100.20 x 250
+[BID] 100.15 x 200
+[Market] Best Bid: 100.15 x 200
+[Strategy] Spread 0.05 < threshold 0.10. Placing SELL at 100.20 x 10 (ID = 1, pos = 0)
+[Execution] Order 1 filled: 5
+[Order] Order 1 partially filled: 5 / 10
+[Execution] Order 1 filled: 5
+[Order] Order 1 completed (10 / 10) and removed
 ```
