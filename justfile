@@ -6,14 +6,15 @@ build:
         -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
     cmake --build build
 
-server: build
-    ./build/hft_server
+run: build
+    ./build/hft_phase3
 
-client: build
-    ./build/hft_client
-
-viz:
-    uv run scripts/viz.py
+asan:
+    cmake -B build -G Ninja \
+        -DCMAKE_CXX_COMPILER={{cxx}} \
+        -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer" \
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+    cmake --build build
 
 clean:
     rm -rf build
