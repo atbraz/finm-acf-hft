@@ -17,7 +17,7 @@ class MarketSnapshot {
 public:
     void update_bid(double price, int qty);
     void update_ask(double price, int qty);
-    const PriceLevel* get_best_bid() const;
-    const PriceLevel* get_best_ask() const;
-    double get_spread() const;
+    [[nodiscard]] const PriceLevel* get_best_bid() const;
+    [[nodiscard]] const PriceLevel* get_best_ask() const;
+    [[nodiscard]] double get_spread() const;
 };

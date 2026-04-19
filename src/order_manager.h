@@ -8,10 +8,10 @@ enum class Side { Buy, Sell };
 enum class OrderStatus { New, PartiallyFilled, Filled, Cancelled };
 
 struct MyOrder {
-    int id;
-    Side side;
-    double price;
-    int quantity;
+    int id = 0;
+    Side side = Side::Buy;
+    double price = 0.0;
+    int quantity = 0;
     int filled = 0;
     OrderStatus status = OrderStatus::New;
 };
