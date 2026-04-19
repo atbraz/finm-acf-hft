@@ -1,5 +1,48 @@
-# Momentum Strategy
+# HFT Phase 3: Local Order Book
 
-The client maintains a sliding window of the three most recent prices using a `std::deque<float>`. On each incoming tick, the oldest price is discarded once the window is full, and the new price is appended. Momentum is detected when all three prices form a strictly monotonic sequence: three consecutive increases signal upward momentum, and three consecutive decreases signal downward momentum. When either condition holds, the client sends an order for the current price ID; otherwise it skips the tick. This filter ensures orders are placed only when a short term trend is present, avoiding trades on noisy or directionless price action.
+Phase 3 implements a local order book and core trading infrastructure. The program reads a text-based market feed, maintains a synchronized view of best bid and ask prices, and places orders when the spread narrows below a configurable threshold. Net position is tracked across fills to alternate between buy and sell orders, keeping exposure balanced.
 
-Once an order is sent, the client records the entry price and the direction of the bet. The next incoming tick settles the trade: if the price moved in the predicted direction, the trade is a win; otherwise it is a loss. Profit and loss is computed as the signed difference between the settlement price and the entry price, accumulated across the session. At disconnect, the client reports hit rate (fraction of ticks that triggered an order), win rate (fraction of settled trades that were profitable), and total PnL. The simulated reaction latency (`sleep_for` of 10 to 50 ms) models the physical delay a real trading system would experience between signal detection and order arrival at the exchange.
+## Architecture
+
+```
+sample_feed.txt
+      |
+      v
+ feed_parser.h
+      |
+      v
+   main.cpp -----> MarketSnapshot (best bid/ask, price levels)
+      |
+      v
+ OrderManager (order lifecycle: open, partial fill, complete, cancel)
+```
+
+## Memory Management
+
+All heap allocation uses RAII via `std::unique_ptr`. There are no raw `new` or `delete` calls. Each `PriceLevel` in the order book and each `MyOrder` in the order manager is owned by a `unique_ptr`, so resources are released automatically when entries are removed or the program exits. Verified clean under AddressSanitizer.
+
+## Build and Run
+
+```bash
+just build      # configure + build
+just run        # build + run hft_phase3
+just asan       # build with AddressSanitizer
+just clean      # remove build/
+```
+
+Requires LLVM clang++ (`/opt/homebrew/opt/llvm/bin/clang++`) and CMake.
+
+## Sample Output
+
+```
+[FEED] BID 100.50 x 200
+[FEED] ASK 100.52 x 150
+[BOOK] spread=0.02, threshold=0.05 -> spread within threshold
+[ORDER] placing BUY at 100.50, qty=100
+[FEED] EXECUTION 100.50 x 100
+[ORDER] fill: BUY 100 @ 100.50, net_position=+100
+[FEED] BID 100.53 x 300
+[FEED] ASK 100.54 x 200
+[BOOK] spread=0.01, threshold=0.05 -> spread within threshold
+[ORDER] placing SELL at 100.54, qty=100
+```
