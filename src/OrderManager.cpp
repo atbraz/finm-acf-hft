@@ -2,12 +2,12 @@
 
 OrderManager::OrderManager(hft::OrderPool& pool) : pool_(pool) {}
 
-std::shared_ptr<OrderT> OrderManager::create(double price, int qty, bool is_buy) {
+std::shared_ptr<OrderT> OrderManager::create(double price, int quantity, bool is_buy) {
     auto sp = hft::make_pool_shared(pool_);
     if (!sp) return nullptr;
     sp->id       = next_id_++;
     sp->price    = price;
-    sp->quantity = qty;
+    sp->quantity = quantity;
     sp->filled   = 0;
     sp->is_buy   = is_buy;
     sp->status   = OrderStatus::New;
