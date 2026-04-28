@@ -109,3 +109,27 @@ TEST_CASE("make_pool_shared returns the slot to the pool on last unref", "[confi
     }
     REQUIRE(pool.available() == initial);
 }
+
+#include "MarketData.hpp"
+
+TEST_CASE("MarketDataFeed::generate is deterministic by seed", "[feed]") {
+    auto a = MarketDataFeed::generate(100, 42);
+    auto b = MarketDataFeed::generate(100, 42);
+    REQUIRE(a.size() == 100);
+    REQUIRE(b.size() == 100);
+    for (std::size_t i = 0; i < a.size(); ++i) {
+        REQUIRE(a[i].bid_price == b[i].bid_price);
+        REQUIRE(a[i].ask_price == b[i].ask_price);
+        REQUIRE(a[i].bid_qty   == b[i].bid_qty);
+        REQUIRE(a[i].ask_qty   == b[i].ask_qty);
+    }
+}
+
+TEST_CASE("MarketDataFeed::generate produces a positive spread", "[feed]") {
+    auto ticks = MarketDataFeed::generate(1000, 7);
+    for (const auto& md : ticks) {
+        REQUIRE(md.ask_price > md.bid_price);
+        REQUIRE(md.bid_qty > 0);
+        REQUIRE(md.ask_qty > 0);
+    }
+}
