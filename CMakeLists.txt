@@ -5,6 +5,15 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# LTO produces bitcode .o files; pair them with matching llvm-ar/ranlib so the
+# static archive index stays valid. Apple's /usr/bin/ar can't handle bitcode.
+if(EXISTS "/opt/homebrew/opt/llvm/bin/llvm-ar")
+    set(CMAKE_AR "/opt/homebrew/opt/llvm/bin/llvm-ar")
+endif()
+if(EXISTS "/opt/homebrew/opt/llvm/bin/llvm-ranlib")
+    set(CMAKE_RANLIB "/opt/homebrew/opt/llvm/bin/llvm-ranlib")
+endif()
+
 # --- compile-time variant toggles -------------------------------------------
 option(HFT_USE_RAW_PTR    "Store orders as raw pointers instead of unique_ptr/shared_ptr" OFF)
 option(HFT_ALIGN_CACHE    "Use alignas(64) on hot-path structs"                            ON)

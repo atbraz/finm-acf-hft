@@ -3,7 +3,6 @@
 #include <vector>
 #include <random>
 #include <algorithm>
-#include <numeric>
 #include "Timer.hpp"
 
 TEST_CASE("Timer measures elapsed nanoseconds", "[timer]") {
@@ -373,7 +372,7 @@ TEST_CASE("Latency smoke: 10k synthetic ticks under 50us p99", "[latency][.slow]
     std::vector<long long> latencies;
     latencies.reserve(ticks.size());
 
-    std::mt19937_64 rng(123);
+    std::mt19937_64 rng(123);  // NOLINT(cert-msc32-c,cert-msc51-cpp) — deterministic by design
     for (const auto& md : ticks) {
         // maker orders on each side
         auto bid = oms.create(md.bid_price, 10, true);
