@@ -1,6 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <thread>
 #include <vector>
+#include <random>
+#include <algorithm>
+#include <numeric>
 #include "Timer.hpp"
 
 TEST_CASE("Timer measures elapsed nanoseconds", "[timer]") {
@@ -344,5 +347,50 @@ TEST_CASE("MatchingEngine no-op when book does not cross", "[engine]") {
         REQUIRE(latencies.size() == 1);
         REQUIRE(oms.active_count() == 2);
     }
+    std::filesystem::remove(path);
+}
+
+namespace {
+long long percentile(std::vector<long long>& v, double p) {
+    if (v.empty()) return 0;
+    std::sort(v.begin(), v.end());
+    auto idx = static_cast<std::size_t>(static_cast<double>(v.size()) * p);
+    if (idx >= v.size()) idx = v.size() - 1;
+    return v[idx];
+}
+}
+
+TEST_CASE("Latency smoke: 10k synthetic ticks under 50us p99", "[latency][.slow]") {
+    auto ticks = MarketDataFeed::generate(10'000, 42);
+    hft::OrderPool pool;
+    OrderManager oms(pool);
+    OrderBook    book;
+    auto path = std::filesystem::temp_directory_path() / "hft_phase4_smoke.csv";
+    std::filesystem::remove(path);
+    TradeLogger log(path.string());
+    MatchingEngine engine(book, oms, log);
+
+    std::vector<long long> latencies;
+    latencies.reserve(ticks.size());
+
+    std::mt19937_64 rng(123);
+    for (const auto& md : ticks) {
+        // maker orders on each side
+        auto bid = oms.create(md.bid_price, 10, true);
+        auto ask = oms.create(md.ask_price, 10, false);
+        if (bid) book.add(bid.get());
+        if (ask) book.add(ask.get());
+        // 1-in-10 aggressive cross
+        if (rng() % 10 == 0) {
+            auto cross = oms.create(md.ask_price, 10, true);
+            if (cross) book.add(cross.get());
+        }
+        engine.on_tick(md, latencies);
+    }
+
+    REQUIRE(latencies.size() == ticks.size());
+    auto p99 = percentile(latencies, 0.99);
+    INFO("p99=" << p99 << " ns");
+    REQUIRE(p99 < 50'000);    // 50us ceiling — wide for CI noise
     std::filesystem::remove(path);
 }
