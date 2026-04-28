@@ -181,3 +181,63 @@ TEST_CASE("Order memory returns to pool on full fill", "[oms]") {
     }
     REQUIRE(pool.available() == initial);
 }
+
+#include "OrderBook.hpp"
+
+namespace {
+OrderT make_order(std::uint64_t id, double price, int qty, bool is_buy) {
+    OrderT o{};
+    o.id = id;
+    o.price = price;
+    o.quantity = qty;
+    o.is_buy = is_buy;
+    return o;
+}
+}
+
+TEST_CASE("OrderBook tracks best bid/ask after inserts", "[book]") {
+    OrderBook book;
+    OrderT b1 = make_order(1, 100.10, 10, true);
+    OrderT b2 = make_order(2, 100.20, 10, true);
+    OrderT a1 = make_order(3, 100.40, 10, false);
+    OrderT a2 = make_order(4, 100.30, 10, false);
+    book.add(&b1);
+    book.add(&b2);
+    book.add(&a1);
+    book.add(&a2);
+
+    REQUIRE(book.best_bid() != nullptr);
+    REQUIRE(book.best_ask() != nullptr);
+    REQUIRE(book.best_bid()->price == 100.20);
+    REQUIRE(book.best_ask()->price == 100.30);
+}
+
+TEST_CASE("OrderBook cancel removes the matching id", "[book]") {
+    OrderBook book;
+    OrderT b1 = make_order(1, 100.10, 10, true);
+    OrderT b2 = make_order(2, 100.20, 10, true);
+    book.add(&b1);
+    book.add(&b2);
+    book.cancel(2);
+    REQUIRE(book.best_bid()->price == 100.10);
+}
+
+TEST_CASE("OrderBook pop_best removes top of book", "[book]") {
+    OrderBook book;
+    OrderT a1 = make_order(1, 100.30, 10, false);
+    OrderT a2 = make_order(2, 100.40, 10, false);
+    book.add(&a1);
+    book.add(&a2);
+    OrderT* popped = book.pop_best_ask();
+    REQUIRE(popped != nullptr);
+    REQUIRE(popped->id == 1);
+    REQUIRE(book.best_ask()->price == 100.40);
+}
+
+TEST_CASE("OrderBook returns null on empty side", "[book]") {
+    OrderBook book;
+    REQUIRE(book.best_bid() == nullptr);
+    REQUIRE(book.best_ask() == nullptr);
+    REQUIRE(book.pop_best_bid() == nullptr);
+    REQUIRE(book.pop_best_ask() == nullptr);
+}
