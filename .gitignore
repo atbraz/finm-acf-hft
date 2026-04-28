@@ -1,9 +1,7 @@
 build/
-build-O1/
-build-O2/
-build-O3/
-build-pgo/
+build-*/
 compile_commands.json
+output.log
 
 # Profile output (traces are large binary bundles, text files are regenerable)
 profile/
@@ -54,3 +52,7 @@ profile/
 .claude
 CLAUDE.md
 docs/superpowers
+
+# Phase 4 benchmark artifacts
+results/
+*.csv
