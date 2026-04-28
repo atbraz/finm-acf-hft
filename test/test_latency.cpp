@@ -261,3 +261,88 @@ TEST_CASE("TradeLogger flushes batched writes on dtor", "[logger]") {
     REQUIRE(n >= 2);                       // 2 trades, plus optional header
     std::filesystem::remove(path);
 }
+
+#include "MatchingEngine.hpp"
+
+TEST_CASE("MatchingEngine matches a crossing pair", "[engine]") {
+    hft::OrderPool pool;
+    OrderManager oms(pool);
+    OrderBook    book;
+    auto path = std::filesystem::temp_directory_path() / "hft_phase4_engine_log.csv";
+    std::filesystem::remove(path);
+    {
+        TradeLogger log(path.string());
+        MatchingEngine engine(book, oms, log);
+
+        auto buy  = oms.create(100.50, 10, true);
+        auto sell = oms.create(100.40, 10, false);
+        book.add(buy.get());
+        book.add(sell.get());
+
+        std::vector<long long> latencies;
+        latencies.reserve(8);
+        MarketData md{};
+        md.bid_price = 100.50;
+        md.ask_price = 100.40;
+        engine.on_tick(md, latencies);
+
+        REQUIRE(latencies.size() == 1);
+        REQUIRE(oms.active_count() == 0);   // both sides filled
+        REQUIRE(book.best_bid() == nullptr);
+        REQUIRE(book.best_ask() == nullptr);
+    }
+    std::filesystem::remove(path);
+}
+
+TEST_CASE("MatchingEngine handles partial fill", "[engine]") {
+    hft::OrderPool pool;
+    OrderManager oms(pool);
+    OrderBook    book;
+    auto path = std::filesystem::temp_directory_path() / "hft_phase4_partial_log.csv";
+    std::filesystem::remove(path);
+    {
+        TradeLogger log(path.string());
+        MatchingEngine engine(book, oms, log);
+
+        auto buy  = oms.create(100.50, 7, true);
+        auto sell = oms.create(100.40, 10, false);
+        book.add(buy.get());
+        book.add(sell.get());
+
+        std::vector<long long> latencies;
+        MarketData md{};
+        engine.on_tick(md, latencies);
+
+        REQUIRE(latencies.size() == 1);
+        // Buy side fully filled, sell has 3 left
+        REQUIRE(oms.active_count() == 1);
+        REQUIRE(book.best_ask() != nullptr);
+        REQUIRE(book.best_ask()->id == sell->id);
+    }
+    std::filesystem::remove(path);
+}
+
+TEST_CASE("MatchingEngine no-op when book does not cross", "[engine]") {
+    hft::OrderPool pool;
+    OrderManager oms(pool);
+    OrderBook    book;
+    auto path = std::filesystem::temp_directory_path() / "hft_phase4_nocross_log.csv";
+    std::filesystem::remove(path);
+    {
+        TradeLogger log(path.string());
+        MatchingEngine engine(book, oms, log);
+
+        auto buy  = oms.create(100.30, 10, true);
+        auto sell = oms.create(100.50, 10, false);
+        book.add(buy.get());
+        book.add(sell.get());
+
+        std::vector<long long> latencies;
+        MarketData md{};
+        engine.on_tick(md, latencies);
+
+        REQUIRE(latencies.size() == 1);
+        REQUIRE(oms.active_count() == 2);
+    }
+    std::filesystem::remove(path);
+}
