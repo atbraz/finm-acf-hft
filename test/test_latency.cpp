@@ -94,3 +94,18 @@ TEST_CASE("PoolDeleter returns slot to pool", "[pool]") {
     pool.deallocate(a);
     pool.deallocate(b);
 }
+
+#include "Config.hpp"
+
+TEST_CASE("make_pool_shared returns the slot to the pool on last unref", "[config]") {
+    hft::OrderPool pool;
+    const auto initial = pool.available();
+    {
+        auto sp = hft::make_pool_shared(pool);
+        sp->id = 42;
+        sp->price = 99.5;
+        REQUIRE(sp.use_count() == 1);
+        REQUIRE(pool.available() == initial - 1);
+    }
+    REQUIRE(pool.available() == initial);
+}
