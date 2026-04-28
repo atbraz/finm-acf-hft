@@ -54,3 +54,7 @@ profile/
 .claude
 CLAUDE.md
 docs/superpowers
+
+# Phase 4 benchmark artifacts
+results/
+*.csv
