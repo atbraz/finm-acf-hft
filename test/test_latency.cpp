@@ -22,3 +22,25 @@ TEST_CASE("ScopedTimer pushes one sample on dtor", "[timer]") {
     REQUIRE(samples.size() == 1);
     REQUIRE(samples[0] >= 500'000);
 }
+
+#include "Order.hpp"
+
+TEST_CASE("Order template instantiates with valid types", "[order]") {
+    using OT = Order<double, std::uint64_t>;
+    OT o{};
+    o.id = 7;
+    o.price = 100.5;
+    o.quantity = 10;
+    o.is_buy = true;
+    o.status = OrderStatus::New;
+
+    REQUIRE(o.id == 7);
+    REQUIRE(o.price == 100.5);
+    REQUIRE(o.is_buy);
+    REQUIRE(o.status == OrderStatus::New);
+    REQUIRE(o.filled == 0);
+}
+
+TEST_CASE("OrderT alias is Order<double, uint64_t>", "[order]") {
+    STATIC_REQUIRE(std::is_same_v<OrderT, Order<double, std::uint64_t>>);
+}
