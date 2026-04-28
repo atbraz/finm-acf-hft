@@ -16,7 +16,7 @@
 class OrderBook {
 public:
     OrderBook();
-    void add(OrderT* order);                      // non-owning
+    void add(OrderT* order);
     void cancel(std::uint64_t id);
     [[nodiscard]] const OrderT* best_bid() const;
     [[nodiscard]] const OrderT* best_ask() const;
@@ -27,9 +27,8 @@ private:
 #if HFT_BOOK_IMPL_FLAT
     struct Level {
         double price;
-        std::vector<OrderT*> orders;       // FIFO
+        std::vector<OrderT*> orders;
     };
-    // bids sorted descending, asks sorted ascending
     std::vector<Level> bids_;
     std::vector<Level> asks_;
     static void insert_sorted(std::vector<Level>& side, OrderT* o, bool descending);

@@ -40,7 +40,7 @@ Stats summarize(std::vector<long long> v) {
         std::sqrt(var / static_cast<double>(n))
     };
 }
-}  // namespace
+}
 
 int main(int argc, char** argv) {
     const std::size_t n_ticks = (argc > 1) ? std::stoul(argv[1]) : 10'000;

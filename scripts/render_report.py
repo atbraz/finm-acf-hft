@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-"""Render results/all_runs.csv into docs/benchmark_report.md."""
 from __future__ import annotations
 
 import csv

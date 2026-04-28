@@ -20,7 +20,7 @@
 
 namespace hft {
 
-inline constexpr std::size_t kPoolCapacity = 1u << 16;   // 65536 orders
+inline constexpr std::size_t kPoolCapacity = 1u << 16;
 using OrderPool = ObjectPool<OrderT, kPoolCapacity>;
 
 #if HFT_USE_POOL
@@ -30,9 +30,9 @@ inline std::shared_ptr<OrderT> make_pool_shared(OrderPool& pool) {
     return std::shared_ptr<OrderT>(raw, PoolDeleter<OrderT>{&pool});
 }
 #else
-inline std::shared_ptr<OrderT> make_pool_shared(OrderPool& /*pool*/) {
+inline std::shared_ptr<OrderT> make_pool_shared(OrderPool&) {
     return std::make_shared<OrderT>();
 }
 #endif
 
-}  // namespace hft
+}

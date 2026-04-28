@@ -65,6 +65,40 @@ notes section. The five experiments:
 | Book container    | reference / book-mmap | `HFT_BOOK_IMPL_FLAT` |
 | Load scaling      | 1k / 10k / 100k ticks | `--ticks` |
 
+## Results
+
+Demo run (`./build/hft_app 10000 42`, Apple Silicon Release):
+
+```
+Tick-to-Trade Latency (ns) over 10000 ticks
+  Min:    0
+  Mean:   4349.82
+  Stddev: 19521.02
+  p50:    3958
+  p95:    8667
+  p99:    12584
+  Max:    1928083
+```
+
+Variant matrix (`bash bench/run_all.sh`, 10k ticks each, seed 42):
+
+```
+[reference]  mean=2898ns  p99=7750ns
+[raw-ptr]    mean=2771ns  p99=7000ns
+[no-align]   mean=2832ns  p99=8000ns
+[no-pool]    mean=2336ns  p99=5625ns
+[book-mmap]  mean=508ns   p99=625ns
+[load-1k]    mean=672ns   p99=1917ns
+[load-10k]   mean=2432ns  p99=5917ns
+[load-100k]  mean=12273ns p99=42167ns
+```
+
+The multimap book is the surprise: at 10k ticks it beats the flat sorted vector
+because the flat side pays an O(n) shift on every level insert and erase, while
+the multimap is amortized O(log n). Pointer ownership, cache alignment, and
+pool toggles all sit inside run-to-run noise at this scale. Load scaling looks
+roughly linear from 1k to 100k ticks.
+
 ## Memory Safety
 
 - Orders are owned by `OrderManager` via `std::shared_ptr<OrderT>`.

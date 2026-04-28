@@ -34,8 +34,8 @@ bool OrderBook::erase_from(std::vector<Level>& side, std::uint64_t id) {
 
 void OrderBook::add(OrderT* o) {
     if (!o) return;
-    if (o->is_buy) insert_sorted(bids_, o, /*descending=*/true);
-    else           insert_sorted(asks_, o, /*descending=*/false);
+    if (o->is_buy) insert_sorted(bids_, o, true);
+    else           insert_sorted(asks_, o, false);
 }
 
 void OrderBook::cancel(std::uint64_t id) {
@@ -66,7 +66,7 @@ OrderT* OrderBook::pop_best_ask() {
     return o;
 }
 
-#else  // multimap variant
+#else
 
 void OrderBook::add(OrderT* o) {
     if (!o) return;

@@ -10,8 +10,8 @@ TEST_CASE("Timer measures elapsed nanoseconds", "[timer]") {
     t.start();
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
     long long ns = t.stop();
-    REQUIRE(ns >= 1'000'000);                  // at least 1 ms
-    REQUIRE(ns <  100'000'000);                // and well under 100 ms
+    REQUIRE(ns >= 1'000'000);
+    REQUIRE(ns <  100'000'000);
 }
 
 TEST_CASE("ScopedTimer pushes one sample on dtor", "[timer]") {
@@ -58,7 +58,7 @@ TEST_CASE("ObjectPool round-trip allocation", "[pool]") {
     REQUIRE(a != b);
     pool.deallocate(a);
     pool.deallocate(b);
-    auto* c = pool.allocate();      // should reuse a slot
+    auto* c = pool.allocate();
     REQUIRE((c == a || c == b));
     pool.deallocate(c);
 }
@@ -178,7 +178,6 @@ TEST_CASE("Order memory returns to pool on full fill", "[oms]") {
         auto o = oms.create(100.0, 1, true);
         REQUIRE(pool.available() == initial - 1);
         oms.on_fill(o->id, 1);
-        // engine/test still holds `o`; pool still down by one
         REQUIRE(pool.available() == initial - 1);
     }
     REQUIRE(pool.available() == initial);
@@ -260,7 +259,7 @@ TEST_CASE("TradeLogger flushes batched writes on dtor", "[logger]") {
     std::string line;
     int n = 0;
     while (std::getline(in, line)) ++n;
-    REQUIRE(n >= 2);                       // 2 trades, plus optional header
+    REQUIRE(n >= 2);
     std::filesystem::remove(path);
 }
 
@@ -289,7 +288,7 @@ TEST_CASE("MatchingEngine matches a crossing pair", "[engine]") {
         engine.on_tick(md, latencies);
 
         REQUIRE(latencies.size() == 1);
-        REQUIRE(oms.active_count() == 0);   // both sides filled
+        REQUIRE(oms.active_count() == 0);
         REQUIRE(book.best_bid() == nullptr);
         REQUIRE(book.best_ask() == nullptr);
     }
@@ -316,7 +315,6 @@ TEST_CASE("MatchingEngine handles partial fill", "[engine]") {
         engine.on_tick(md, latencies);
 
         REQUIRE(latencies.size() == 1);
-        // Buy side fully filled, sell has 3 left
         REQUIRE(oms.active_count() == 1);
         REQUIRE(book.best_ask() != nullptr);
         REQUIRE(book.best_ask()->id == sell->id);
@@ -372,14 +370,12 @@ TEST_CASE("Latency smoke: 10k synthetic ticks under 50us p99", "[latency][.slow]
     std::vector<long long> latencies;
     latencies.reserve(ticks.size());
 
-    std::mt19937_64 rng(123);  // NOLINT(cert-msc32-c,cert-msc51-cpp) — deterministic by design
+    std::mt19937_64 rng(123);  // NOLINT(cert-msc32-c,cert-msc51-cpp)
     for (const auto& md : ticks) {
-        // maker orders on each side
         auto bid = oms.create(md.bid_price, 10, true);
         auto ask = oms.create(md.ask_price, 10, false);
         if (bid) book.add(bid.get());
         if (ask) book.add(ask.get());
-        // 1-in-10 aggressive cross
         if (rng() % 10 == 0) {
             auto cross = oms.create(md.ask_price, 10, true);
             if (cross) book.add(cross.get());
@@ -390,6 +386,6 @@ TEST_CASE("Latency smoke: 10k synthetic ticks under 50us p99", "[latency][.slow]
     REQUIRE(latencies.size() == ticks.size());
     auto p99 = percentile(latencies, 0.99);
     INFO("p99=" << p99 << " ns");
-    REQUIRE(p99 < 50'000);    // 50us ceiling — wide for CI noise
+    REQUIRE(p99 < 50'000);
     std::filesystem::remove(path);
 }

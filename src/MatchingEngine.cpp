@@ -5,7 +5,7 @@
 MatchingEngine::MatchingEngine(OrderBook& book, OrderManager& oms, TradeLogger& log)
     : book_(book), oms_(oms), log_(log) {}
 
-void MatchingEngine::on_tick(const MarketData& /*md*/, std::vector<long long>& latencies) {
+void MatchingEngine::on_tick(const MarketData&, std::vector<long long>& latencies) {
     ScopedTimer t(latencies);
 
     while (true) {
@@ -20,14 +20,13 @@ void MatchingEngine::on_tick(const MarketData& /*md*/, std::vector<long long>& l
         const int b_remaining = b->quantity - b->filled;
         const int a_remaining = a->quantity - a->filled;
         const int qty         = b_remaining < a_remaining ? b_remaining : a_remaining;
-        const double price    = a->price;          // taker pays maker
+        const double price    = a->price;
 
         oms_.on_fill(b->id, qty);
         oms_.on_fill(a->id, qty);
 
         log_.log(Trade{b->id, a->id, price, qty, std::chrono::nanoseconds(0)});
 
-        // Re-insert any residual side
         if (b->filled < b->quantity) book_.add(b);
         if (a->filled < a->quantity) book_.add(a);
     }

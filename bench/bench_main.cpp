@@ -41,7 +41,7 @@ long long pct(std::vector<long long>& v, double p) {
     auto i = static_cast<std::size_t>(static_cast<double>(v.size()) * p);
     return v[std::min(i, v.size() - 1)];
 }
-}  // namespace
+}
 
 int main(int argc, char** argv) {
     Args args = parse(argc, argv);
