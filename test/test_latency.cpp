@@ -241,3 +241,23 @@ TEST_CASE("OrderBook returns null on empty side", "[book]") {
     REQUIRE(book.pop_best_bid() == nullptr);
     REQUIRE(book.pop_best_ask() == nullptr);
 }
+
+#include <filesystem>
+#include <fstream>
+#include "TradeLogger.hpp"
+
+TEST_CASE("TradeLogger flushes batched writes on dtor", "[logger]") {
+    auto path = std::filesystem::temp_directory_path() / "hft_phase4_test_log.csv";
+    std::filesystem::remove(path);
+    {
+        TradeLogger log(path.string());
+        log.log(Trade{1, 2, 100.5, 10, std::chrono::nanoseconds(123)});
+        log.log(Trade{3, 4, 100.6, 5,  std::chrono::nanoseconds(456)});
+    }
+    std::ifstream in(path);
+    std::string line;
+    int n = 0;
+    while (std::getline(in, line)) ++n;
+    REQUIRE(n >= 2);                       // 2 trades, plus optional header
+    std::filesystem::remove(path);
+}
