@@ -133,3 +133,51 @@ TEST_CASE("MarketDataFeed::generate produces a positive spread", "[feed]") {
         REQUIRE(md.ask_qty > 0);
     }
 }
+
+#include "OrderManager.hpp"
+
+TEST_CASE("OrderManager creates orders with monotonic ids", "[oms]") {
+    hft::OrderPool pool;
+    OrderManager oms(pool);
+    auto a = oms.create(100.0, 10, true);
+    auto b = oms.create(101.0, 5,  false);
+    REQUIRE(a);
+    REQUIRE(b);
+    REQUIRE(a->id == 1);
+    REQUIRE(b->id == 2);
+    REQUIRE(oms.active_count() == 2);
+}
+
+TEST_CASE("OrderManager partial then full fill", "[oms]") {
+    hft::OrderPool pool;
+    OrderManager oms(pool);
+    auto o = oms.create(100.0, 10, true);
+    oms.on_fill(o->id, 4);
+    REQUIRE(o->status == OrderStatus::PartiallyFilled);
+    REQUIRE(o->filled == 4);
+    REQUIRE(oms.active_count() == 1);
+    oms.on_fill(o->id, 6);
+    REQUIRE(oms.active_count() == 0);
+}
+
+TEST_CASE("OrderManager cancellation removes order", "[oms]") {
+    hft::OrderPool pool;
+    OrderManager oms(pool);
+    auto o = oms.create(100.0, 10, false);
+    oms.on_cancel(o->id);
+    REQUIRE(oms.active_count() == 0);
+}
+
+TEST_CASE("Order memory returns to pool on full fill", "[oms]") {
+    hft::OrderPool pool;
+    OrderManager oms(pool);
+    const auto initial = pool.available();
+    {
+        auto o = oms.create(100.0, 1, true);
+        REQUIRE(pool.available() == initial - 1);
+        oms.on_fill(o->id, 1);
+        // engine/test still holds `o`; pool still down by one
+        REQUIRE(pool.available() == initial - 1);
+    }
+    REQUIRE(pool.available() == initial);
+}
