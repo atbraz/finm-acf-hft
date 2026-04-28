@@ -1,10 +1,17 @@
 #pragma once
 
 #include <cstdint>
-#include <map>
-#include <vector>
-#include "Config.hpp"
 #include "Order.hpp"
+
+#ifndef HFT_BOOK_IMPL_FLAT
+#define HFT_BOOK_IMPL_FLAT 1
+#endif
+
+#if HFT_BOOK_IMPL_FLAT
+#include <vector>
+#else
+#include <map>
+#endif
 
 class OrderBook {
 public:
@@ -25,8 +32,8 @@ private:
     // bids sorted descending, asks sorted ascending
     std::vector<Level> bids_;
     std::vector<Level> asks_;
-    void insert_sorted(std::vector<Level>& side, OrderT* o, bool descending);
-    bool erase_from(std::vector<Level>& side, std::uint64_t id);
+    static void insert_sorted(std::vector<Level>& side, OrderT* o, bool descending);
+    static bool erase_from(std::vector<Level>& side, std::uint64_t id);
 #else
     std::multimap<double, OrderT*, std::greater<>> bids_;
     std::multimap<double, OrderT*>                 asks_;
