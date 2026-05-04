@@ -22,10 +22,7 @@ test: debug
     ./{{build_dir}}/hft_test
 
 bench: build
-    ./{{build_dir}}/hft_bench --ticks 10000 --seed 42 --label reference --out results/reference.csv
-
-bench-all: build
-    bash bench/run_all.sh
+    ./{{build_dir}}/hft_bench
 
 asan:
     cmake -B {{build_dir}} -G Ninja \
