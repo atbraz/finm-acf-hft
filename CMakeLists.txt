@@ -12,12 +12,12 @@ if(EXISTS "/opt/homebrew/opt/llvm/bin/llvm-ranlib")
     set(CMAKE_RANLIB "/opt/homebrew/opt/llvm/bin/llvm-ranlib")
 endif()
 
-add_library(hft_core INTERFACE)
-target_include_directories(hft_core INTERFACE include)
-target_compile_options(hft_core INTERFACE -Wall -Wextra -Wpedantic)
-target_compile_options(hft_core INTERFACE
+add_library(hft_core STATIC src/OrderBook.cpp)
+target_include_directories(hft_core PUBLIC include)
+target_compile_options(hft_core PUBLIC -Wall -Wextra -Wpedantic)
+target_compile_options(hft_core PUBLIC
     $<$<CONFIG:Release>:-O3 -march=native -flto>)
-target_link_options(hft_core INTERFACE
+target_link_options(hft_core PUBLIC
     $<$<CONFIG:Release>:-flto>)
 
 include(FetchContent)
