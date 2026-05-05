@@ -28,6 +28,9 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
+add_executable(hft_bench bench/bench_main.cpp)
+target_link_libraries(hft_bench PRIVATE hft_core)
+
 add_executable(hft_test test/test_orderbook.cpp)
 target_link_libraries(hft_test PRIVATE hft_core Catch2::Catch2WithMain)
 

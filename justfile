@@ -24,6 +24,12 @@ test: debug
 bench: build
     ./{{build_dir}}/hft_bench
 
+bench-all: build
+    bash bench/run_all.sh
+
+plot:
+    uv run --with matplotlib python scripts/plot_orderbook.py
+
 asan:
     cmake -B {{build_dir}} -G Ninja \
         -DCMAKE_CXX_COMPILER={{cxx}} \
