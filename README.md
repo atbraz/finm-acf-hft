@@ -64,6 +64,8 @@ Per-op latency averaged across three seeds:
 
 ![performance chart](docs/orderbook_perf.png)
 
+Screen recording of the live demo and depth chart: [`docs/phase5_demo.mov`](docs/phase5_demo.mov).
+
 Both curves scale linearly with N. The reserved variant wins by skipping
 the ~17 rehashes a default-sized `unordered_map` performs on its way to
 100k entries; the gap is largest at small N, where each saved rehash is
