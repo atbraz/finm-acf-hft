@@ -13,6 +13,7 @@ public:
 
     [[nodiscard]] bool contains(const std::string& id) const;
     [[nodiscard]] std::size_t size() const;
+    void reserve(std::size_t n);
 
 private:
     std::map<double, std::unordered_map<std::string, Order>> orderLevels;

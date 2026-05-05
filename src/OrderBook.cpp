@@ -38,3 +38,7 @@ bool OrderBook::contains(const std::string& id) const {
 std::size_t OrderBook::size() const {
     return orderLookup.size();
 }
+
+void OrderBook::reserve(std::size_t n) {
+    orderLookup.reserve(n);
+}

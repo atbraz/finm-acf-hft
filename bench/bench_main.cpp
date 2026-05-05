@@ -17,8 +17,9 @@ struct Input {
 }
 
 int main(int argc, char** argv) {
-    int           n    = (argc > 1) ? std::atoi(argv[1]) : 10000;
-    std::uint64_t seed = (argc > 2) ? std::strtoull(argv[2], nullptr, 10) : 42ull;
+    int           n       = (argc > 1) ? std::atoi(argv[1]) : 10000;
+    std::uint64_t seed    = (argc > 2) ? std::strtoull(argv[2], nullptr, 10) : 42ull;
+    bool          reserve = (argc > 3 && std::string(argv[3]) == "reserve");
 
     std::mt19937                           rng(static_cast<unsigned>(seed));
     std::uniform_real_distribution<double> priceDist(50.0, 100.0);
@@ -35,12 +36,14 @@ int main(int argc, char** argv) {
     }
 
     OrderBook book;
-    auto      t0 = std::chrono::high_resolution_clock::now();
+    if (reserve) book.reserve(static_cast<std::size_t>(n));
+    auto t0 = std::chrono::high_resolution_clock::now();
     for (const auto& o : in) book.addOrder(o.id, o.price, o.qty, o.isBuy);
     auto t1 = std::chrono::high_resolution_clock::now();
 
-    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
-    std::cout << n << "," << seed << "," << ns << ","
+    auto              ns    = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
+    const char* const label = reserve ? "reserved" : "baseline";
+    std::cout << label << "," << n << "," << seed << "," << ns << ","
               << static_cast<double>(ns) / n << "\n";
     return 0;
 }
