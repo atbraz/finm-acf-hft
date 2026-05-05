@@ -15,7 +15,10 @@ public:
     [[nodiscard]] std::size_t size() const;
     void reserve(std::size_t n);
 
+    using LevelMap = std::map<double, std::unordered_map<std::string, Order>>;
+    [[nodiscard]] const LevelMap& levels() const noexcept { return orderLevels; }
+
 private:
-    std::map<double, std::unordered_map<std::string, Order>> orderLevels;
-    std::unordered_map<std::string, Order>                   orderLookup;
+    LevelMap                               orderLevels;
+    std::unordered_map<std::string, Order> orderLookup;
 };

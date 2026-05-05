@@ -33,6 +33,9 @@ plot:
 demo: build
     uv run scripts/demo_orderbook.py
 
+stream: build
+    ./{{build_dir}}/hft_stream | uv run scripts/depth_chart.py
+
 asan:
     cmake -B {{build_dir}} -G Ninja \
         -DCMAKE_CXX_COMPILER={{cxx}} \

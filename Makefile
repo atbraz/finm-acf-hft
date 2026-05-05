@@ -1,7 +1,7 @@
 CXX := /opt/homebrew/opt/llvm/bin/clang++
 BUILD_DIR := build
 
-.PHONY: build debug run test bench bench-all plot demo asan clean
+.PHONY: build debug run test bench bench-all plot demo stream asan clean
 
 build:
 	cmake -B $(BUILD_DIR) -G Ninja \
@@ -34,6 +34,9 @@ plot:
 
 demo: build
 	uv run scripts/demo_orderbook.py
+
+stream: build
+	./$(BUILD_DIR)/hft_stream | uv run scripts/depth_chart.py
 
 asan:
 	cmake -B $(BUILD_DIR) -G Ninja \

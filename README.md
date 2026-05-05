@@ -30,6 +30,7 @@ just bench      # single bench run
 just bench-all  # full N x seed matrix -> results/orderbook_add.csv
 just plot       # render docs/orderbook_perf.png
 just demo       # live-updating chart sweep, 1k -> 1M (for the video)
+just stream     # paced order flow piped into a live depth chart
 just asan       # asan/ubsan build + tests
 just clean      # remove build/ and results/*.csv
 ```
