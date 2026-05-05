@@ -1,107 +1,49 @@
-#include <algorithm>
-#include <cmath>
+#include <chrono>
 #include <cstdint>
-#include <cstdio>
 #include <cstdlib>
-#include <fstream>
-#include <numeric>
+#include <iostream>
 #include <random>
 #include <string>
 #include <vector>
-
-#include "Config.hpp"
-#include "MarketData.hpp"
-#include "MatchingEngine.hpp"
 #include "OrderBook.hpp"
-#include "OrderManager.hpp"
-#include "TradeLogger.hpp"
 
 namespace {
-struct Args {
-    std::size_t   ticks = 10'000;
-    std::uint64_t seed  = 42;
-    std::string   label = "unlabeled";
-    std::string   out   = "results/bench.csv";
+struct Input {
+    std::string id;
+    double      price;
+    int         qty;
+    bool        isBuy;
 };
-
-Args parse(int argc, char** argv) {
-    Args a;
-    for (int i = 1; i + 1 < argc; i += 2) {
-        std::string k = argv[i];
-        std::string v = argv[i + 1];
-        if      (k == "--ticks") a.ticks = std::stoul(v);
-        else if (k == "--seed")  a.seed  = std::stoull(v);
-        else if (k == "--label") a.label = v;
-        else if (k == "--out")   a.out   = v;
-    }
-    return a;
-}
-
-long long pct(std::vector<long long>& v, double p) {
-    auto i = static_cast<std::size_t>(static_cast<double>(v.size()) * p);
-    return v[std::min(i, v.size() - 1)];
-}
 }
 
 int main(int argc, char** argv) {
-    Args args = parse(argc, argv);
+    int           n       = (argc > 1) ? std::atoi(argv[1]) : 10000;
+    std::uint64_t seed    = (argc > 2) ? std::strtoull(argv[2], nullptr, 10) : 42ull;
+    bool          reserve = (argc > 3 && std::string(argv[3]) == "reserve");
 
-    auto ticks = MarketDataFeed::generate(args.ticks, args.seed);
+    std::mt19937                           rng(static_cast<unsigned>(seed));
+    std::uniform_real_distribution<double> priceDist(50.0, 100.0);
+    std::uniform_int_distribution<int>     qtyDist(1, 500);
+    std::uniform_int_distribution<int>     sideDist(0, 1);
 
-    hft::OrderPool pool;
-    OrderManager   oms(pool);
-    OrderBook      book;
-    TradeLogger    log("results/bench_trades.csv");
-    MatchingEngine engine(book, oms, log);
-
-    std::vector<long long> latencies;
-    latencies.reserve(args.ticks);
-
-    std::mt19937_64 rng(args.seed);
-    for (const auto& md : ticks) {
-        auto bid = oms.create(md.bid_price, 10, true);
-        auto ask = oms.create(md.ask_price, 10, false);
-        if (bid) book.add(bid.get());
-        if (ask) book.add(ask.get());
-        if (rng() % 10 == 0) {
-            auto cross = oms.create(md.ask_price, 10, true);
-            if (cross) book.add(cross.get());
-        }
-        engine.on_tick(md, latencies);
+    std::vector<Input> in;
+    in.reserve(n);
+    for (int i = 0; i < n; ++i) {
+        in.push_back({"ORD" + std::to_string(i),
+                      priceDist(rng),
+                      qtyDist(rng),
+                      sideDist(rng) == 1});
     }
 
-    std::sort(latencies.begin(), latencies.end());
-    auto min  = latencies.front();
-    auto max  = latencies.back();
-    auto p50  = pct(latencies, 0.50);
-    auto p95  = pct(latencies, 0.95);
-    auto p99  = pct(latencies, 0.99);
-    double mean = std::accumulate(latencies.begin(), latencies.end(), 0.0)
-                  / static_cast<double>(latencies.size());
-    double var = 0.0;
-    for (auto x : latencies) {
-        double d = static_cast<double>(x) - mean;
-        var += d * d;
-    }
-    double stddev = std::sqrt(var / static_cast<double>(latencies.size()));
+    OrderBook book;
+    if (reserve) book.reserve(static_cast<std::size_t>(n));
+    auto t0 = std::chrono::high_resolution_clock::now();
+    for (const auto& o : in) book.addOrder(o.id, o.price, o.qty, o.isBuy);
+    auto t1 = std::chrono::high_resolution_clock::now();
 
-    bool need_header = false;
-    {
-        std::ifstream in(args.out);
-        need_header = !in.good() || in.peek() == std::ifstream::traits_type::eof();
-    }
-    std::ofstream out(args.out, std::ios::app);
-    if (need_header) {
-        out << "label,ticks,seed,raw_ptr,align_cache,use_pool,book_flat,"
-            << "min_ns,mean_ns,stddev_ns,p50_ns,p95_ns,p99_ns,max_ns\n";
-    }
-    out << args.label << ',' << args.ticks << ',' << args.seed << ','
-        << HFT_USE_RAW_PTR  << ',' << HFT_ALIGN_CACHE << ','
-        << HFT_USE_POOL     << ',' << HFT_BOOK_IMPL_FLAT << ','
-        << min << ',' << mean << ',' << stddev << ','
-        << p50 << ',' << p95 << ',' << p99 << ',' << max << '\n';
-
-    std::printf("[%s] mean=%.0fns p99=%lldns\n",
-                args.label.c_str(), mean, p99);
+    auto              ns    = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
+    const char* const label = reserve ? "reserved" : "baseline";
+    std::cout << label << "," << n << "," << seed << "," << ns << ","
+              << static_cast<double>(ns) / n << "\n";
     return 0;
 }

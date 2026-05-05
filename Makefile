@@ -1,7 +1,7 @@
 CXX := /opt/homebrew/opt/llvm/bin/clang++
 BUILD_DIR := build
 
-.PHONY: build debug run test bench bench-all asan clean
+.PHONY: build debug run test bench bench-all plot demo stream asan clean
 
 build:
 	cmake -B $(BUILD_DIR) -G Ninja \
@@ -24,10 +24,19 @@ test: debug
 	./$(BUILD_DIR)/hft_test
 
 bench: build
-	./$(BUILD_DIR)/hft_bench --ticks 10000 --seed 42 --label reference --out results/reference.csv
+	./$(BUILD_DIR)/hft_bench
 
 bench-all: build
 	bash bench/run_all.sh
+
+plot:
+	uv run scripts/plot_orderbook.py
+
+demo: build
+	uv run scripts/demo_orderbook.py
+
+stream: build
+	./$(BUILD_DIR)/hft_stream | uv run scripts/depth_chart.py
 
 asan:
 	cmake -B $(BUILD_DIR) -G Ninja \

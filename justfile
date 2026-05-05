@@ -22,10 +22,19 @@ test: debug
     ./{{build_dir}}/hft_test
 
 bench: build
-    ./{{build_dir}}/hft_bench --ticks 10000 --seed 42 --label reference --out results/reference.csv
+    ./{{build_dir}}/hft_bench
 
 bench-all: build
     bash bench/run_all.sh
+
+plot:
+    uv run scripts/plot_orderbook.py
+
+demo: build
+    uv run scripts/demo_orderbook.py
+
+stream: build
+    ./{{build_dir}}/hft_stream | uv run scripts/depth_chart.py
 
 asan:
     cmake -B {{build_dir}} -G Ninja \
