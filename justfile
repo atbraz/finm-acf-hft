@@ -28,7 +28,10 @@ bench-all: build
     bash bench/run_all.sh
 
 plot:
-    uv run --with matplotlib python scripts/plot_orderbook.py
+    uv run scripts/plot_orderbook.py
+
+demo: build
+    uv run scripts/demo_orderbook.py
 
 asan:
     cmake -B {{build_dir}} -G Ninja \

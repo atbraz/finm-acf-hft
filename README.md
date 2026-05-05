@@ -19,7 +19,8 @@ sync and prune empty price levels on the way out.
 
 ## Build
 
-Requires LLVM clang++, CMake, Ninja, and `uv` (for the matplotlib chart).
+Requires LLVM clang++, CMake, Ninja, and `uv` (for the Python scripts —
+each declares its deps via PEP 723 inline metadata, so no separate venv).
 
 ```bash
 just build      # release configure + build
@@ -28,6 +29,7 @@ just test       # debug build + Catch2 suite
 just bench      # single bench run
 just bench-all  # full N x seed matrix -> results/orderbook_add.csv
 just plot       # render docs/orderbook_perf.png
+just demo       # live-updating chart sweep, 1k -> 1M (for the video)
 just asan       # asan/ubsan build + tests
 just clean      # remove build/ and results/*.csv
 ```
